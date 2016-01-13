@@ -2,7 +2,7 @@
 
 #OBJS=../../prefix/lib/libpnl.so  ../../prefix/lib/libhigh.so ../../prefix/lib/cxcore.so -lpython2.7
 OBJS=-lpnl -lhigh -lcxcore -lpython2.7
-INCLUDES=-I/usr/local/inclue/ -I/usr/local/include/opencx/ -I/usr/include/python2.7/
+INCLUDES=-I/usr/local/include/ -I/usr/local/include/opencx/ -I/usr/include/python2.7/
 
 all: openpnl.i
 	swig -builtin -c++ $(INCLUDES) -python openpnl.i
