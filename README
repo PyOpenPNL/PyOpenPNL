@@ -1,0 +1,6 @@
+PyOpenPNL is a python library providing Probabilistic Network models and routines
+It consists of SWIG Python bindings for Intel's OpenPNL library and python ports of examples
+
+For the latest version see: https://github.com/osh/PyOpenPNL
+
+
