@@ -21,21 +21,16 @@
 
 %include "typemaps.i"
 %include "std_vector.i"
-// Instantiate templates used by example
-namespace std {
-   %template(intVector) vector<int>;
-   %template(intVecVector) vector<vector<int> >;
-}
-
 
 %define PNL_API
 %enddef
 
-%template(intVector) std::vector<int>;
-%template(intVecVector) std::vector< std::vector< int > >;
+%template(floatVector)  ::std::vector<float>;
+%template(intVector)    ::std::vector<int>;
+%template(intVecVector) ::std::vector< std::vector< int > >;
 
 namespace pnl {
-  class CPNLBase 
+  class CPNLBase
   {
     protected:
       CPNLBase();
@@ -56,6 +51,7 @@ namespace pnl {
 };
 
 %include "pnlConfig.hpp"
+%include "pnlVector.hpp"
 %include "pnlTypeDefs.hpp"
 %include "pnlNodeValues.hpp"
 %include "pnl2DBitwiseMatrix.hpp"
@@ -79,3 +75,37 @@ namespace pnl {
 %include "pnl2TBNInferenceEngine.hpp"
 %include "pnl1_5SliceInferenceEngine.hpp"
 %include "pnl1_5SliceJtreeInferenceEngine.hpp"
+
+namespace pnl {
+    %template(valueVector) ::std::vector<pnl::Value>;
+    %extend CDynamicInfEngine
+    {
+        void MarginalNodes(std::vector<int> iv,int n1,int n2){
+            pnl::intVector v(iv.begin(), iv.end());
+            self->pnl::CDynamicInfEngine::MarginalNodes(v,n1,n2);
+        }
+    }
+}
+
+/*
+ *  Python SWIG Helper Functions ... is there a better way we should be doing this??
+ */
+%inline %{
+
+pnl::CEvidence** newCEvidences(int n){
+    return new pnl::CEvidence*[n];
+}
+pnl::CEvidence* mkEvidence(pnl::CGraphicalModel *model, std::vector<int> aa, std::vector<float> ff){
+    const pnl::valueVector v( ff.begin(), ff.end());
+    const pnl::intVector iv(aa.size());
+    return pnl::CEvidence::Create((pnl::CGraphicalModel const *) model,iv,v );
+    }
+void assignEvidence(pnl::CEvidence** evidences, pnl::CEvidence* evidence, int index){
+    evidences[index] = evidence;
+}
+
+
+
+%}
+
+//%array_class(struct CEvidence, CEvidences);

@@ -1,25 +1,32 @@
 #!/usr/bin/env python
 import openpnl
-print dir(openpnl)
+#print dir(openpnl)
 
 model = openpnl.pnlExCreateRndArHMM()
 #model = openpnl.pnlExCreateKjaerulfsBNet()
 
 pArHMM = openpnl.CDBN_Create(model)
 pInfEng = openpnl.C1_5SliceJtreeInfEngine_Create(pArHMM)
-
 nTimeSlices = 5
-#pEvidences = openpnl.CEvidence()
+
+# set up evidence ...
+pEvidences = openpnl.newCEvidences(nTimeSlices)
+for i in range(0,nTimeSlices):
+    ev = openpnl.mkEvidence( pArHMM, [1], [1.0] );
+    openpnl.assignEvidence( pEvidences, ev, i )
 
 pInfEng.DefineProcedure(openpnl.ptSmoothing, nTimeSlices)
-#pInfEng.EnterEvidence(pEvidences, nTimeSlices)
-#pInfEng.Smoothing()
+pInfEng.EnterEvidence(pEvidences, nTimeSlices)
+pInfEng.Smoothing()
 
-queryPrior = openpnl.intVector([0])
+queryPrior = [0]
+#queryPrior = openpnl.intVector([0])
 queryPriorSize = 1
 slice_ = 0
 
-#pInfEng.MarginalNodes(queryPrior, queryPriorSize, slice_)
-#pQueryJPD = pInfEng.GetQueryJPD();
+pInfEng.MarginalNodes(queryPrior, queryPriorSize, slice_)
+pQueryJPD = pInfEng.GetQueryJPD();
 
+print pQueryJPD
+print dir(pQueryJPD)
 
