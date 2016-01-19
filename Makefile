@@ -14,3 +14,6 @@ test:
 
 clean:
 	rm -f _openpnl.so openpnl_wrap.cxx openpnl.py openpnl.pyc openpnl_wrap.o
+
+qa:
+	python qa*.py

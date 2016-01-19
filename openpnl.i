@@ -96,6 +96,8 @@ namespace pnl {
     %template(floatVectorPNLAlloc2) ::pnl::pnlVector< float,pnl::GeneralAllocator< float > >;
     %template(valueVector) ::std::vector<pnl::Value>;
     %template(floatVectorPNL) ::pnl::pnlVector<float>;
+    %template(pEvidencesVecVectorCrazyAllocator) ::std::vector< pnl::pnlVector< pnl::CEvidence *,pnl::GeneralAllocator< pnl::CEvidence * > >,pnl::GeneralAllocator< pnl::pnlVector< pnl::CEvidence *,pnl::GeneralAllocator< pnl::CEvidence * > > > >;
+    %template(pEvidencesVecVector) ::pnl::pnlVector< pEvidencesVector>;
     %extend CDynamicInfEngine
     {
         void MarginalNodes(std::vector<int> iv,int n1,int n2){
@@ -136,6 +138,11 @@ std::vector<float> convertVector(pnl::floatVector f){
     std::vector<float> f2;
     f2.assign( &f[0], &f[0]+f.size() );
     return f2; 
+}
+const pnl::intVector* toIntVector(std::vector<int> v){
+    pnl::intVector* iv = new pnl::intVector();
+    iv->assign(&v[0], &v[0]+v.size());
+    return iv;
 }
 
 %}
