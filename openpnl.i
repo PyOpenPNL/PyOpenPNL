@@ -4,6 +4,8 @@
 #include "pnlConfig.hpp"
 #include "pnlTypeDefs.hpp"
 #include "pnlObject.hpp"
+#include "pnlVector.hpp"
+#include "pnlMatrix.hpp"
 #include "pnlGraph.hpp"
 #include "pnlDAG.hpp"
 #include "pnlGraphicalModel.hpp"
@@ -17,6 +19,8 @@
 #include "pnlDBN.hpp"
 #include "pnlExampleModels.hpp"
 #include "pnl1_5SliceJtreeInferenceEngine.hpp"
+#include "pnlIDPotential.hpp"
+#include "pnlExInferenceEngine.hpp"
 %}
 
 %include "typemaps.i"
@@ -29,14 +33,14 @@
 %template(intVector)    ::std::vector<int>;
 %template(intVecVector) ::std::vector< std::vector< int > >;
 
+
 namespace pnl {
+  
   class CPNLBase
   {
     protected:
       CPNLBase();
   };
-
-
   class Value
   {
     public:
@@ -53,12 +57,22 @@ namespace pnl {
 %include "pnlConfig.hpp"
 %include "pnlVector.hpp"
 %include "pnlTypeDefs.hpp"
+%include "pnlMatrix.hpp"
 %include "pnlNodeValues.hpp"
 %include "pnl2DBitwiseMatrix.hpp"
+%include "pnlReferenceCounter.hpp"
+//%rename(something_else) operator();
 %include "pnlMatrix.hpp"
+%include "pnlMatrixIterator.hpp"
+%template(pnlCMatrixf)  pnl::CMatrix< float >;
+%include "pnlDenseMatrix.hpp"
+%template(pnlDenseMatrixF) pnl::CDenseMatrix<float>;
+%include "pnlNumericDenseMatrix.hpp"
 %include "pnlModelTypes.hpp"
 %include "pnlFactor.hpp"
 %include "pnlFactors.hpp"
+%include "pnlIDPotential.hpp"
+%include "pnlPotential.hpp"
 %include "pnlObject.hpp"
 %include "pnlGraph.hpp"
 %include "pnlDAG.hpp"
@@ -70,6 +84,7 @@ namespace pnl {
 %include "pnlBNet.hpp"
 %include "pnlMNet.hpp"
 %include "pnlMRF2.hpp"
+%include "pnlExInferenceEngine.hpp"
 %include "pnlExampleModels.hpp"
 %include "pnlDynamicInferenceEngine.hpp"
 %include "pnl2TBNInferenceEngine.hpp"
@@ -77,12 +92,26 @@ namespace pnl {
 %include "pnl1_5SliceJtreeInferenceEngine.hpp"
 
 namespace pnl {
+    %template(floatVectorPNLAlloc) ::std::vector< float,pnl::GeneralAllocator< float > >;
+    %template(floatVectorPNLAlloc2) ::pnl::pnlVector< float,pnl::GeneralAllocator< float > >;
     %template(valueVector) ::std::vector<pnl::Value>;
+    %template(floatVectorPNL) ::pnl::pnlVector<float>;
     %extend CDynamicInfEngine
     {
         void MarginalNodes(std::vector<int> iv,int n1,int n2){
             pnl::intVector v(iv.begin(), iv.end());
             self->pnl::CDynamicInfEngine::MarginalNodes(v,n1,n2);
+        }
+    }
+    %extend pnlDenseMatrix<float>
+    {
+        std::vector<float> getVector(){
+            int nEl;
+            const float* data;
+            pnlDenseMatrixF_GetRawData(nEl, data);
+            std::vector<float> v;
+            v.assign(data, data+nEl)
+            return v;
         }
     }
 }
@@ -103,8 +132,11 @@ pnl::CEvidence* mkEvidence(pnl::CGraphicalModel *model, std::vector<int> aa, std
 void assignEvidence(pnl::CEvidence** evidences, pnl::CEvidence* evidence, int index){
     evidences[index] = evidence;
 }
-
-
+std::vector<float> convertVector(pnl::floatVector f){
+    std::vector<float> f2;
+    f2.assign( &f[0], &f[0]+f.size() );
+    return f2; 
+}
 
 %}
 

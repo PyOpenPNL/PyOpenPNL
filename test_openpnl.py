@@ -27,6 +27,9 @@ slice_ = 0
 pInfEng.MarginalNodes(queryPrior, queryPriorSize, slice_)
 pQueryJPD = pInfEng.GetQueryJPD();
 
-print pQueryJPD
-print dir(pQueryJPD)
+mdl = pQueryJPD.GetModelDomain()
+mat = pQueryJPD.GetMatrix(openpnl.matTable)
+
+print openpnl.convertVector(mat.ConvertToDense().GetVector())
+
 
