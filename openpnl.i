@@ -94,6 +94,8 @@ namespace pnl {
 %include "pnlLearningEngine.hpp"
 %include "pnlDynamicLearningEngine.hpp"
 %include "pnlEmLearningEngineDBN.hpp"
+%include "pnlInferenceEngine.hpp"
+%include "pnlNaiveInferenceEngine.hpp"
 
 namespace pnl {
     %template(floatVectorPNLAlloc) ::std::vector< float,pnl::GeneralAllocator< float > >;
@@ -101,7 +103,9 @@ namespace pnl {
     %template(valueVector) ::std::vector<pnl::Value>;
     %template(floatVectorPNL) ::pnl::pnlVector<float>;
     %template(pEvidencesVecVectorCrazyAllocator) ::std::vector< pnl::pnlVector< pnl::CEvidence *,pnl::GeneralAllocator< pnl::CEvidence * > >,pnl::GeneralAllocator< pnl::pnlVector< pnl::CEvidence *,pnl::GeneralAllocator< pnl::CEvidence * > > > >;
+
     %template(pEvidencesVecVector) ::pnl::pnlVector< pEvidencesVector>;
+    %template(pConstValueVector)   ::pnl::pnlVector< const Value*>;
     %extend CDynamicInfEngine
     {
         void MarginalNodes(std::vector<int> iv,int n1,int n2){
@@ -127,6 +131,12 @@ namespace pnl {
             pnl::pEvidencesVecVector pvv;
             self->GenerateSamples(&pvv,iv);
             return pvv;
+        }
+    }
+    %extend CNaiveInfEngine
+    {
+        void MarginalNodes( std::vector<int> queryNds ){
+            self->MarginalNodes( (const int*) &queryNds[0], queryNds.size() );
         }
     }
 }
