@@ -120,6 +120,15 @@ namespace pnl {
             return v;
         }
     }
+    %extend CDBN
+    {
+        pnl::pEvidencesVecVector GenerateSamples2(std::vector<int> ns){
+            const pnl::intVector iv(&ns[0], &ns[ns.size()]);
+            pnl::pEvidencesVecVector pvv;
+            self->GenerateSamples(&pvv,iv);
+            return pvv;
+        }
+    }
 }
 
 /*
@@ -160,7 +169,6 @@ pnl::pEvidencesVecVector* toEvidencesVecVector(pnl::CEvidence** ev, int n){
     }
     return v;
 }
-
 
 %}
 
