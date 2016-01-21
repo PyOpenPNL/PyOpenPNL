@@ -25,7 +25,6 @@ pLearn.Learn()
 for i in range(0,4):
     pCPD1 = pArHMM.GetFactor(i)
     pMat = pCPD1.GetMatrix(openpnl.matTable)
-    print pMat
-#    print pMat.GetRawData()
-
+    cpd = openpnl.convertVector(pMat.ConvertToDense().GetVector())
+    print cpd
     
