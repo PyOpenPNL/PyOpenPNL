@@ -10,7 +10,7 @@ nTimeSeries = 500
 nSlices = [0]*nTimeSeries
 
 pEvidences = openpnl.newCEvidences(nTimeSeries)
-evidencesOut = openpnl.pEvidencesVecVector();
+#evidencesOut = openpnl.pEvidencesVecVector();
 
 #openpnl.pnlRand(nTimeSeries, pEvidences.front(), 3, 20)
 
@@ -18,8 +18,10 @@ evidencesOut = openpnl.pEvidencesVecVector();
 for i in range(0,nTimeSeries):
     ev = openpnl.mkEvidence( pArHMM, [1], [1.0] );
     openpnl.assignEvidence( pEvidences, ev, i )
+    #openpnl.assignEvidence( pEvidences, ev, i )
 
-pArHMM.GenerateSamples( evidencesOut, openpnl.toIntVector(nSlices) )
+print type(pEvidences)
+pArHMM.GenerateSamples( pEvidences, openpnl.toIntVector(nSlices) )
 
 
 
