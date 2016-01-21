@@ -21,6 +21,7 @@
 #include "pnl1_5SliceJtreeInferenceEngine.hpp"
 #include "pnlIDPotential.hpp"
 #include "pnlExInferenceEngine.hpp"
+#include "pnlEmLearningEngineDBN.hpp"
 %}
 
 %include "typemaps.i"
@@ -35,7 +36,7 @@
 
 
 namespace pnl {
-  
+
   class CPNLBase
   {
     protected:
@@ -90,6 +91,9 @@ namespace pnl {
 %include "pnl2TBNInferenceEngine.hpp"
 %include "pnl1_5SliceInferenceEngine.hpp"
 %include "pnl1_5SliceJtreeInferenceEngine.hpp"
+%include "pnlLearningEngine.hpp"
+%include "pnlDynamicLearningEngine.hpp"
+%include "pnlEmLearningEngineDBN.hpp"
 
 namespace pnl {
     %template(floatVectorPNLAlloc) ::std::vector< float,pnl::GeneralAllocator< float > >;
@@ -137,13 +141,26 @@ void assignEvidence(pnl::CEvidence** evidences, pnl::CEvidence* evidence, int in
 std::vector<float> convertVector(pnl::floatVector f){
     std::vector<float> f2;
     f2.assign( &f[0], &f[0]+f.size() );
-    return f2; 
+    return f2;
 }
-const pnl::intVector* toIntVector(std::vector<int> v){
+pnl::intVector* toIntVector(std::vector<int> v){
     pnl::intVector* iv = new pnl::intVector();
     iv->assign(&v[0], &v[0]+v.size());
     return iv;
 }
+const pnl::intVector* toConstIntVector(std::vector<int> v){
+    return (const pnl::intVector*) toIntVector(v);
+}
+pnl::pEvidencesVecVector* toEvidencesVecVector(pnl::CEvidence** ev, int n){
+    pnl::pEvidencesVecVector *v = new pnl::pEvidencesVecVector();
+    for(int i=0; i<n; i++){
+        pnl::pEvidencesVector subv;
+        subv.push_back(ev[i]);
+        v->push_back(subv);
+    }
+    return v;
+}
+
 
 %}
 
