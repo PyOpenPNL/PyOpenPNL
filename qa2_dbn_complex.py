@@ -5,6 +5,7 @@ import numpy as np
 
 print " *** SET UP MODEL **"
 model = openpnl.pnlExCreateRndArHMM()
+model.GetGraph().Dump()
 pArHMM = openpnl.CDBN_Create(model)
 pInfEng = openpnl.C1_5SliceJtreeInfEngine_Create(pArHMM)
 
@@ -12,14 +13,17 @@ pInfEng = openpnl.C1_5SliceJtreeInfEngine_Create(pArHMM)
 print " *** SET UP RANDOM SLICES  **"
 nTimeSeries = 500
 nSlices = np.random.randint(3,20,nTimeSeries);
+print nSlices
 
 print " *** GENERATE SAMPLES *** "
 evidencesOut = pArHMM.GenerateSamples2( nSlices );
-
 pDBN = openpnl.CDBN.Create(openpnl.pnlExCreateRndArHMM());
+print evidencesOut 
+print pDBN
+
+print " *** LEARNING *** "
 pLearn = openpnl.CEMLearningEngineDBN.Create( pDBN );
 pLearn.SetData(evidencesOut)
-print " *** LEARNING *** "
 pLearn.Learn()
 
 for i in range(0,4):
