@@ -22,10 +22,20 @@
 #include "pnlIDPotential.hpp"
 #include "pnlExInferenceEngine.hpp"
 #include "pnlEmLearningEngineDBN.hpp"
+#include "pnlNodeType.hpp"
+
+#define SWIG_FILE_WITH_INIT
 %}
 
 %include "typemaps.i"
 %include "std_vector.i"
+%include "numpy.i"
+%init %{
+import_array();
+%}
+
+%numpy_typemaps(double, NPY_DOUBLE, int)
+%numpy_typemaps(int,    NPY_INT   , int)
 
 %define PNL_API
 %enddef
@@ -66,8 +76,10 @@ namespace pnl {
 %include "pnlMatrix.hpp"
 %include "pnlMatrixIterator.hpp"
 %template(pnlCMatrixf)  pnl::CMatrix< float >;
+%template(pnlCMatrixi)  pnl::CMatrix< int >;
 %include "pnlDenseMatrix.hpp"
 %template(pnlDenseMatrixF) pnl::CDenseMatrix<float>;
+%template(pnlDenseMatrixI) pnl::CDenseMatrix<int>;
 %include "pnlNumericDenseMatrix.hpp"
 %include "pnlModelTypes.hpp"
 %include "pnlFactor.hpp"
@@ -75,6 +87,11 @@ namespace pnl {
 %include "pnlIDPotential.hpp"
 %include "pnlPotential.hpp"
 %include "pnlObject.hpp"
+%include "pnlNodeType.hpp"
+%template(foo12345) std::vector< pnl::CNodeType,pnl::GeneralAllocator< pnl::CNodeType > >;
+%template(foo123456) std::vector< pnl::Value const *,pnl::GeneralAllocator< pnl::Value const * > >;
+%template(pnlNodeTypeVector) pnl::pnlVector< pnl::CNodeType>;
+//%template(intSizeType) pnl::pnlVector< pnl::CNodeType >::size_type;
 %include "pnlGraph.hpp"
 %include "pnlDAG.hpp"
 %include "pnlGraphicalModel.hpp"
@@ -139,6 +156,15 @@ namespace pnl {
             self->MarginalNodes( (const int*) &queryNds[0], queryNds.size() );
         }
     }
+    %extend CGraph
+    {
+        static CGraph* CreateNP( int* IN_ARRAY2, int DIM1, int DIM2 ){
+            int dims[2]; dims[0] = DIM1; dims[1] = DIM2; int clamp = 0;
+            pnl::CMatrix<int> *m = pnl::CDenseMatrix<int>::Create( 2, dims, IN_ARRAY2, clamp );  
+            pnl::CGraph* a = pnl::CGraph::Create(m);
+            return a;
+        }
+    }
 }
 
 /*
@@ -153,6 +179,10 @@ pnl::CEvidence* mkEvidence(pnl::CGraphicalModel *model, std::vector<int> aa, std
     const pnl::valueVector v( ff.begin(), ff.end());
     const pnl::intVector iv(aa.size());
     return pnl::CEvidence::Create((pnl::CGraphicalModel const *) model,iv,v );
+    }
+pnl::CNodeType* mkNodeTypeVector(int nnodes){
+    pnl::CNodeType* nTs = new pnl::CNodeType[nnodes];
+    return nTs;
     }
 void assignEvidence(pnl::CEvidence** evidences, pnl::CEvidence* evidence, int index){
     evidences[index] = evidence;
