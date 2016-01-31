@@ -23,6 +23,7 @@
 #include "pnlExInferenceEngine.hpp"
 #include "pnlEmLearningEngineDBN.hpp"
 #include "pnlNodeType.hpp"
+#include "pnlTabularCPD.hpp"
 
 #define SWIG_FILE_WITH_INIT
 %}
@@ -35,6 +36,7 @@ import_array();
 %}
 
 %numpy_typemaps(double, NPY_DOUBLE, int)
+%numpy_typemaps(float,  NPY_FLOAT, int)
 %numpy_typemaps(int,    NPY_INT   , int)
 
 %define PNL_API
@@ -82,6 +84,7 @@ namespace pnl {
 %template(pnlDenseMatrixI) pnl::CDenseMatrix<int>;
 %include "pnlNumericDenseMatrix.hpp"
 %include "pnlModelTypes.hpp"
+%include "pnlModelDomain.hpp"
 %include "pnlFactor.hpp"
 %include "pnlFactors.hpp"
 %include "pnlIDPotential.hpp"
@@ -91,8 +94,10 @@ namespace pnl {
 %template(foo12345) std::vector< pnl::CNodeType,pnl::GeneralAllocator< pnl::CNodeType > >;
 %template(foo123456) std::vector< pnl::Value const *,pnl::GeneralAllocator< pnl::Value const * > >;
 %template(pnlNodeTypeVector) pnl::pnlVector< pnl::CNodeType>;
-%rename (pnl::pnlVector< pnl::CNodeType >::size) int;
+//%rename (pnl::pnlVector< pnl::CNodeType >::size) int;
 //%template(intSizeType) pnl::pnlVector< pnl::CNodeType >::size_type;
+%include "pnlCPD.hpp"
+%include "pnlTabularCPD.hpp"
 %include "pnlGraph.hpp"
 %include "pnlDAG.hpp"
 %include "pnlGraphicalModel.hpp"
@@ -173,6 +178,14 @@ namespace pnl {
  */
 %inline %{
 
+pnl::CMatrix<float>* mkCMatrixF2( float* IN_ARRAY2, int DIM1, int DIM2 ){
+    int dims[2]; dims[0] = DIM1; dims[1] = DIM2; int clamp = 0;
+    return pnl::CDenseMatrix<float>::Create( 2, dims, IN_ARRAY2, clamp);
+}
+pnl::CMatrix<float>* mkCMatrixF1( float* IN_ARRAY1, int DIM1 ){
+    int dims[1]; dims[0] = DIM1; int clamp = 0;
+    return pnl::CDenseMatrix<float>::Create( 1, dims, IN_ARRAY1, clamp);
+}
 pnl::CEvidence** newCEvidences(int n){
     return new pnl::CEvidence*[n];
 }
