@@ -91,6 +91,7 @@ namespace pnl {
 %template(foo12345) std::vector< pnl::CNodeType,pnl::GeneralAllocator< pnl::CNodeType > >;
 %template(foo123456) std::vector< pnl::Value const *,pnl::GeneralAllocator< pnl::Value const * > >;
 %template(pnlNodeTypeVector) pnl::pnlVector< pnl::CNodeType>;
+%rename (pnl::pnlVector< pnl::CNodeType >::size) int;
 //%template(intSizeType) pnl::pnlVector< pnl::CNodeType >::size_type;
 %include "pnlGraph.hpp"
 %include "pnlDAG.hpp"
