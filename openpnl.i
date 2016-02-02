@@ -24,6 +24,10 @@
 #include "pnlEmLearningEngineDBN.hpp"
 #include "pnlNodeType.hpp"
 #include "pnlTabularCPD.hpp"
+#include "pnlBKInferenceEngine.hpp"
+#include "pnlPearlInferenceEngine.hpp"
+#include "pnlJunctionTree.hpp"
+#include "pnlJtreeInferenceEngine.hpp"
 
 #define SWIG_FILE_WITH_INIT
 %}
@@ -119,6 +123,12 @@ namespace pnl {
 %include "pnlEmLearningEngineDBN.hpp"
 %include "pnlInferenceEngine.hpp"
 %include "pnlNaiveInferenceEngine.hpp"
+%include "pnlBKInferenceEngine.hpp"
+%include "pnlPearlInferenceEngine.hpp"
+//%include "pnlJunctionTree.hpp"
+//%rename(unusedConstructorforASDJSKASD) pnl::CJunctionTree::Create(const pnl::CStaticGraphicalModel*, int, const int*, const int**);
+//%include "pnlJtreeInferenceEngine.hpp"
+
 
 namespace pnl {
     %template(floatVectorPNLAlloc) ::std::vector< float,pnl::GeneralAllocator< float > >;
@@ -182,6 +192,13 @@ namespace pnl {
             self->AllocMatrix( (const float*) &data[0], mType);
         }
     }
+    %extend CInfEngine
+    {
+        void pyMarginalNodes( std::vector<int> nodes, int notExpandJPD = 0 ){
+            const pnl::intVector iv(&nodes[0], &nodes[nodes.size()]);
+            self->MarginalNodes( iv, notExpandJPD );
+        }
+    }
 }
 
 /*
@@ -237,4 +254,3 @@ pnl::pEvidencesVecVector* toEvidencesVecVector(pnl::CEvidence** ev, int n){
 
 %}
 
-//%array_class(struct CEvidence, CEvidences);

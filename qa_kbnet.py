@@ -6,6 +6,7 @@ import networkx
 import matplotlib.pyplot as plt
 import numpy as np
 
+# ** Set up the BNet/DBN
 nnodes = 4
 
 # set up the graph
@@ -51,5 +52,15 @@ for (node, cpdvals) in [
     pBNet.AttachFactor(cCPD)
 
 
+# Set up the inference engine
+infEngine = openpnl.CPearlInfEngine.Create( pBNet );
+
+# Enter evidence 
+ev = openpnl.mkEvidence( pBNet, [1], [0] )
+infEngine.EnterEvidence(ev)
+
+# Compute marginals
+infEngine.pyMarginalNodes( [3], 0 )
+infEngine.GetQueryJPD().Dump()
 
 
