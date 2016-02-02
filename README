@@ -7,15 +7,13 @@ Questions, please contact
     Tim O'Shea or Kiran Karra
 
 
-Installation_________________
+______________Installation_________________
 
 1. OpenPNL must already be installed
 
-    https://github.com/PyOpenPNL/OpenPNL
-
-    this includes building cxcore shared object
-    /usr/lib/ and /usr/local/lib/ are searched for deps by default
-
+        We have added a number of build fixes to this version
+            https://github.com/PyOpenPNL/OpenPNL
+            run ./configure && make && sudo make install
 
 2. This module follows standard swig/distutils installation
 
