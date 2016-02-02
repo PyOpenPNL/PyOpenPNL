@@ -12,7 +12,7 @@ libdir_search = [
     ]
 swig_inc_flags = map(lambda x: "-I%s"%(x), swig_inc)
 
-openpnl_module = Extension('openpnl',
+openpnl_module = Extension('openpnl._openpnl',
                 sources=['src/openpnl.i'],
                 swig_opts=['-builtin', '-c++'] + swig_inc_flags,
                 include_dirs=swig_inc,
