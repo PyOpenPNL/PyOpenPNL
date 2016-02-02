@@ -6,14 +6,18 @@ swig_inc = [
     "/usr/include/",
     "/usr/include/opencx/",
     ]
+libdir_search = [
+    "/usr/lib",
+    "/usr/local/lib/"
+    ]
 swig_inc_flags = map(lambda x: "-I%s"%(x), swig_inc)
 
 openpnl_module = Extension('openpnl',
                 sources=['src/openpnl.i'],
                 swig_opts=['-builtin', '-c++'] + swig_inc_flags,
                 include_dirs=swig_inc,
-                runtime_library_dirs=[],
-                libraries=["src/openpnl"],
+                runtime_library_dirs=libdir_search,
+                libraries=["pnl","high","cxcore"],
                 extra_compile_args=['-Wno-write-strings','-Wno-maybe-uninitialized','-Wno-cpp'])
 
 setup(  name            = 'openpnl',
