@@ -46,7 +46,6 @@ for (node, cpdvals) in [
     print "node: ", node, " parents: ", parents
     domain = list(parents) + [node]
     cCPD = openpnl.CTabularCPD.Create( pBNet.GetModelDomain() , openpnl.toConstIntVector(domain) )
-    tba = openpnl.mkCMatrixF1( np.array( cpdvals, dtype=np.float32 ) )
     cCPD.AllocMatrix( cpdvals, openpnl.matTable )
     cCPD.NormalizeCPD()
     pBNet.AttachFactor(cCPD)
