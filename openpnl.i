@@ -170,6 +170,17 @@ namespace pnl {
             pnl::CGraph* a = pnl::CGraph::Create(m);
             return a;
         }
+        std::vector<int> GetParents(int node){
+            pnl::intVector v;
+            self->GetParents(node, &v);
+            return std::vector<int>(&v[0], &v[v.size()]);
+        }
+    }
+    %extend CFactor
+    {
+        void AllocMatrix( std::vector<float> data, EMatrixType mType ){
+            self->AllocMatrix( (const float*) &data[0], mType);
+        }
     }
 }
 

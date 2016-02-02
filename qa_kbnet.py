@@ -28,22 +28,29 @@ types[3].SetType( isDiscrete, 4 )
 
 # node associations
 nA = [0]*nnodes;
-nA[0] = 0; nA[1] = 0; nA[2] = 3;
+#nA[0] = 0; nA[1] = 0; nA[2] = 3;
 nodeAssoc = openpnl.toConstIntVector(nA)
 
 # make the bayes net ...
 pBNet = openpnl.CBNet.Create( nnodes, types, nodeAssoc, pGraph )
+pBNet.AllocFactors()
 
 for (node, cpdvals) in [
     (0, [0.5,0.5]),
     (1, [0.8, 0.2, 0.2, 0.8]),
     (2, [0.5, 0.9, 0.5, 0.1]),
-    (3, [1, 0.1, 0.1, 0.01, 0, 0.9, 0.9, 0.99])]:
+    (3, [1, 0.1, 0.1, 0.01, 0, 0.9, 0.9, 0.99]),
+    ]:
 
-    md = openpnl.CModelDomain.Create( 1 )
+    parents = pGraph.GetParents(node);
+    print "node: ", node, " parents: ", parents
+    domain = list(parents) + [node]
+    cCPD = openpnl.CTabularCPD.Create( pBNet.GetModelDomain() , openpnl.toConstIntVector(domain) )
     tba = openpnl.mkCMatrixF1( np.array( cpdvals, dtype=np.float32 ) )
-    cf = openpnl.CTabularCPD.Create( md, openpnl.toConstIntVector([node]), tba)
-    pBNet.AttachFactor(cf)
+    cCPD.AllocMatrix( cpdvals, openpnl.matTable )
+    cCPD.NormalizeCPD()
+    pBNet.AttachFactor(cCPD)
+
 
 
 
