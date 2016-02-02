@@ -1,5 +1,10 @@
 #!/bin/bash
-
+#
+#	***************************************************
+#		This makefile is for testing only
+#			Please use setup.py for build and install!
+#	***************************************************
+#
 #OBJS=../../prefix/lib/libpnl.so  ../../prefix/lib/libhigh.so ../../prefix/lib/cxcore.so -lpython2.7
 OBJS=-lpnl -lhigh -lcxcore -lpython2.7
 INCLUDES=-I/usr/local/include/ -I/usr/local/include/opencx/ -I/usr/include/python2.7/
