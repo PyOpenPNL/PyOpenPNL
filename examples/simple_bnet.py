@@ -2,7 +2,7 @@
 import sys
 sys.path.append(".")
 import openpnl
-import networkx
+import networkx as nx
 import matplotlib.pyplot as plt
 import numpy as np
 
@@ -28,9 +28,7 @@ types[2].SetType( isDiscrete, 2 )
 types[3].SetType( isDiscrete, 4 )
 
 # node associations
-nA = [0]*nnodes;
-#nA[0] = 0; nA[1] = 0; nA[2] = 3;
-nodeAssoc = openpnl.toConstIntVector(nA)
+nodeAssoc = openpnl.toConstIntVector([0]*nnodes)
 
 # make the bayes net ...
 pBNet = openpnl.CBNet.Create( nnodes, types, nodeAssoc, pGraph )
@@ -55,12 +53,37 @@ for (node, cpdvals) in [
 # Set up the inference engine
 infEngine = openpnl.CPearlInfEngine.Create( pBNet );
 
-# Enter evidence 
-ev = openpnl.mkEvidence( pBNet, [1], [0] )
+# Problem 1 P(W|C=0)
+ev = openpnl.mkEvidence( pBNet, [0], [0] )
 infEngine.EnterEvidence(ev)
-
-# Compute marginals
 infEngine.pyMarginalNodes( [3], 0 )
 infEngine.GetQueryJPD().Dump()
+m = openpnl.convertVector(infEngine.GetQueryJPD().GetMatrix(openpnl.matTable).ConvertToDense().GetVector())
+index = np.arange(0,2,1)
+plt.figure()
+plt.bar(index, m)
+plt.title("Marginal of P(WetGrass|Cloudy=False)")
+plt.ylabel("P(WetGress = x)");
+plt.xticks(index+0.5, ('WetGrass=False', "WetGrass=True"))
 
+
+# Problem 1 P(W|C=1)
+ev = openpnl.mkEvidence( pBNet, [0], [1] )
+infEngine.EnterEvidence(ev)
+infEngine.pyMarginalNodes( [3], 0 )
+infEngine.GetQueryJPD().Dump()
+m = openpnl.convertVector(infEngine.GetQueryJPD().GetMatrix(openpnl.matTable).ConvertToDense().GetVector())
+plt.figure()
+plt.bar(index, m)
+plt.title("Marginal of P(WetGrass|Cloudy=True)")
+plt.ylabel("P(WetGress = x)");
+plt.xticks(index+0.5, ('WetGrass=False', "WetGrass=True"))
+
+
+# Visualization ... 
+plt.figure()
+l = {0:"Cloudy",1:"Rain",2:"Sprinkler",3:"WetGrass"}
+D = nx.DiGraph(dag, labels=l)
+v = nx.draw(D, labels=l)
+plt.show()
 
