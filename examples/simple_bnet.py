@@ -25,7 +25,7 @@ isDiscrete = 1
 types[0].SetType( isDiscrete, 2 )
 types[1].SetType( isDiscrete, 2 )
 types[2].SetType( isDiscrete, 2 )
-types[3].SetType( isDiscrete, 4 )
+types[3].SetType( isDiscrete, 2 )
 
 # node associations
 nodeAssoc = openpnl.toConstIntVector([0]*nnodes)
