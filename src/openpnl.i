@@ -219,7 +219,7 @@ pnl::CEvidence** newCEvidences(int n){
 }
 pnl::CEvidence* mkEvidence(pnl::CGraphicalModel *model, std::vector<int> aa, std::vector<float> ff){
     const pnl::valueVector v( ff.begin(), ff.end());
-    const pnl::intVector iv(aa.size());
+    const pnl::intVector iv(aa.begin(), aa.end());
     return pnl::CEvidence::Create((pnl::CGraphicalModel const *) model,iv,v );
     }
 pnl::CNodeType* mkNodeTypeVector(int nnodes){

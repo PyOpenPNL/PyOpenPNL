@@ -2,3 +2,6 @@
 *.pyc
 *.cxx
 *.o
+src/openpnl.py
+src/openpnl_wrap.cpp
+build/
