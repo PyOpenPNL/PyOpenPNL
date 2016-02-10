@@ -199,6 +199,14 @@ namespace pnl {
             self->MarginalNodes( iv, notExpandJPD );
         }
     }
+    %extend CDynamicInfEngine
+    {
+    
+        void pyMarginalNodes( std::vector<int> nodes, int time, int notExpandJPD = 0 ){
+            const pnl::intVector iv(&nodes[0], &nodes[nodes.size()]);
+            self->MarginalNodes(iv, time, notExpandJPD);
+        }
+    }
 }
 
 /*
