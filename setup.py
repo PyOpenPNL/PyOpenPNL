@@ -18,7 +18,7 @@ openpnl_module = Extension('openpnl._openpnl',
                 include_dirs=swig_inc,
                 runtime_library_dirs=libdir_search,
                 libraries=["pnl","high","cxcore"],
-                extra_compile_args=['-Wno-write-strings','-Wno-maybe-uninitialized','-Wno-cpp'])
+                extra_compile_args=['-Wno-write-strings','-Wno-maybe-uninitialized','-Wno-cpp','-fpermissive'])
 
 setup(  name            = 'openpnl',
         version         = '0.1',
