@@ -21,7 +21,7 @@ print dag
 # set up the node types
 types =  openpnl.pnlNodeTypeVector()
 types.resize(nnodes)
-isDiscrete = 1
+isDiscrete = True
 types[0].SetType( isDiscrete, 2 )
 types[1].SetType( isDiscrete, 2 )
 types[2].SetType( isDiscrete, 2 )
