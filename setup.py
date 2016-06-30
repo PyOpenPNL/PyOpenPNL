@@ -1,10 +1,12 @@
 from distutils.core import setup, Extension
+import numpy
 
 swig_inc = [
     "/usr/local/include/",
     "/usr/local/include/opencx/",
     "/usr/include/",
     "/usr/include/opencx/",
+    numpy.get_include()
     ]
 libdir_search = [
     "/usr/lib",
