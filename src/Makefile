@@ -11,8 +11,8 @@ INCLUDES=-I/usr/local/include/ -I/usr/local/include/opencx/ -I/usr/include/pytho
 
 all: openpnl.i
 	swig -builtin -c++ $(INCLUDES) -python openpnl.i
-	g++ -Wno-vla -fPIC -c openpnl_wrap.cxx $(INCLUDES) -fpermissive -D_GLIBCXX_USE_CXX11_ABI=0
-	g++ -shared openpnl_wrap.o $(OBJS) $(INCLUDES) -o _openpnl.so -fpermissive -D_GLIBCXX_USE_CXX11_ABI=0
+	g++ -Wno-vla -fPIC -c openpnl_wrap.cxx $(INCLUDES) -fpermissive #-D_GLIBCXX_USE_CXX11_ABI=0
+	g++ -shared openpnl_wrap.o $(OBJS) $(INCLUDES) -o _openpnl.so -fpermissive #-D_GLIBCXX_USE_CXX11_ABI=0
 
 test:
 	python -c 'import openpnl'
