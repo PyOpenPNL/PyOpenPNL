@@ -28,6 +28,8 @@
 #include "pnlPearlInferenceEngine.hpp"
 #include "pnlJunctionTree.hpp"
 #include "pnlJtreeInferenceEngine.hpp"
+#include "pnlMlStaticStructLearnHC.hpp"
+#include "pnlMlStaticStructLearn.hpp"
 
 #define SWIG_FILE_WITH_INIT
 %}
@@ -78,7 +80,6 @@ namespace pnl {
 %include "pnlNodeValues.hpp"
 %include "pnl2DBitwiseMatrix.hpp"
 %include "pnlReferenceCounter.hpp"
-//%rename(something_else) operator();
 %include "pnlMatrix.hpp"
 %include "pnlMatrixIterator.hpp"
 %template(pnlCMatrixf)  pnl::CMatrix< float >;
@@ -98,8 +99,6 @@ namespace pnl {
 %template(foo12345) std::vector< pnl::CNodeType,pnl::GeneralAllocator< pnl::CNodeType > >;
 %template(foo123456) std::vector< pnl::Value const *,pnl::GeneralAllocator< pnl::Value const * > >;
 %template(pnlNodeTypeVector) pnl::pnlVector< pnl::CNodeType>;
-//%rename (pnl::pnlVector< pnl::CNodeType >::size) int;
-//%template(intSizeType) pnl::pnlVector< pnl::CNodeType >::size_type;
 %include "pnlCPD.hpp"
 %include "pnlTabularCPD.hpp"
 %include "pnlGraph.hpp"
@@ -125,9 +124,8 @@ namespace pnl {
 %include "pnlNaiveInferenceEngine.hpp"
 %include "pnlBKInferenceEngine.hpp"
 %include "pnlPearlInferenceEngine.hpp"
-//%include "pnlJunctionTree.hpp"
-//%rename(unusedConstructorforASDJSKASD) pnl::CJunctionTree::Create(const pnl::CStaticGraphicalModel*, int, const int*, const int**);
-//%include "pnlJtreeInferenceEngine.hpp"
+%include "pnlMlStaticStructLearn.hpp"
+%include "pnlMlStaticStructLearnHC.hpp"
 
 
 namespace pnl {
@@ -210,7 +208,7 @@ namespace pnl {
 }
 
 /*
- *  Python SWIG Helper Functions ... is there a better way we should be doing this??
+ *  Python SWIG Helper Functions
  */
 %inline %{
 
@@ -259,6 +257,64 @@ pnl::pEvidencesVecVector* toEvidencesVecVector(pnl::CEvidence** ev, int n){
     }
     return v;
 }
+
+pnl::CMlStaticStructLearnHC* mkCMlStaticStructLearnHC(int* IN_ARRAY1, int DIM1){
+
+        int numOfNds = DIM1;
+        std::cout << "Number of nodes: " << numOfNds << "\n";
+        for(int i=0; i<numOfNds; i++){
+            std::cout << "Node("<<i<<") Size: "<<IN_ARRAY1[i] <<"\n";
+            }
+
+        // from Example 2-1. Creation of water sprinkler Bayesian network
+        // Graph creation using adjacency matrix
+        int ranges[] = { numOfNds, numOfNds };
+        pnl::intVector matrixData( numOfNds*numOfNds, 0 );
+        pnl::CDenseMatrix<int>* adjMat = pnl::CDenseMatrix<int>::Create( 2, ranges, &matrixData.front() );
+        int indices[] = { 0, 1 };
+        pnl::CGraph *pGraph = pnl::CGraph::Create(adjMat);
+
+
+        // set up the bnet template
+        pnl::CNodeType *nodeTypes = new pnl::CNodeType [numOfNds];
+        for(int i=0; i< numOfNds; i++){ 
+            nodeTypes[i].SetType(1,IN_ARRAY1[i]);
+            }
+        int *nodeAssociation = new int[numOfNds];
+        for(int i=0; i<numOfNds; i++){
+            nodeAssociation[i] = i;
+        }
+        pnl::CBNet *pBNet = pnl::CBNet::Create( numOfNds, numOfNds /*NumOfNodeTypes*/, nodeTypes, nodeAssociation, pGraph );
+        pBNet->AllocFactors();
+//        for( int i = 0; i < numOfNds; ++i ) 
+//        { 
+//            pBNet->AllocFactor(i); 
+//            pnl::CFactor* pFactor = pBNet->GetFactor(i); 
+//            float *tab = new float[IN_ARRAY1[i]];
+//            for(int j=0; j<IN_ARRAY1[i]; j++){
+//                tab[j] = 0.5f;
+//                }
+//            pFactor->AllocMatrix( tab, pnl::matTable );         
+//        }
+//        // make up random values
+//        pBNet = pnl::CBNet::CreateWithRandomMatrices( pGraph, pBNet->GetModelDomain() );    
+        
+        // set up the learner
+        int max_fan_in = 4;
+        int n_restarts = 1;
+        pnl::intVector vA, vD;
+        pnl::CMlStaticStructLearnHC* pLearnS = pnl::CMlStaticStructLearnHC::Create(pBNet,
+                            pnl::itStructLearnML, // Learning Type
+                            pnl::StructLearnHC,   // EOptimizeTypes
+                            pnl::BIC,             // ScoreType
+                            max_fan_in,
+                            vA,
+                            vD,
+                            n_restarts);
+
+        return pLearnS;
+}
+
 
 %}
 
