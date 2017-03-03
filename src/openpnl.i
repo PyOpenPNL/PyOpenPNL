@@ -174,7 +174,7 @@ namespace pnl {
     {
         static CGraph* CreateNP( int* IN_ARRAY2, int DIM1, int DIM2 ){
             int dims[2]; dims[0] = DIM1; dims[1] = DIM2; int clamp = 0;
-            pnl::CMatrix<int> *m = pnl::CDenseMatrix<int>::Create( 2, dims, IN_ARRAY2, clamp );  
+            pnl::CMatrix<int> *m = pnl::CDenseMatrix<int>::Create( 2, dims, IN_ARRAY2, clamp );
             pnl::CGraph* a = pnl::CGraph::Create(m);
             return a;
         }
@@ -199,7 +199,7 @@ namespace pnl {
     }
     %extend CDynamicInfEngine
     {
-    
+
         void pyMarginalNodes( std::vector<int> nodes, int time, int notExpandJPD = 0 ){
             const pnl::intVector iv(&nodes[0], &nodes[nodes.size()]);
             self->MarginalNodes(iv, time, notExpandJPD);
@@ -258,52 +258,68 @@ pnl::pEvidencesVecVector* toEvidencesVecVector(pnl::CEvidence** ev, int n){
     return v;
 }
 
-pnl::CMlStaticStructLearnHC* mkCMlStaticStructLearnHC(int* IN_ARRAY1, int DIM1){
+pnl::CMlStaticStructLearnHC* mkCMlStaticStructLearnHC(int* IN_ARRAY1, int DIM1, int max_fan_in=4, int n_restarts=1){
+        int i;
+        //fan in sanity check + warning
+        if(max_fan_in > DIM1){
+          std::cout << "WARNING: reducing max_fan_in to equal num_nodes!\n";
+          max_fan_in = DIM1;
+        }
 
         int numOfNds = DIM1;
         std::cout << "Number of nodes: " << numOfNds << "\n";
-        for(int i=0; i<numOfNds; i++){
+        for(i=0; i<numOfNds; i++){
             std::cout << "Node("<<i<<") Size: "<<IN_ARRAY1[i] <<"\n";
             }
 
-        // from Example 2-1. Creation of water sprinkler Bayesian network
-        // Graph creation using adjacency matrix
-        int ranges[] = { numOfNds, numOfNds };
-        pnl::intVector matrixData( numOfNds*numOfNds, 0 );
-        pnl::CDenseMatrix<int>* adjMat = pnl::CDenseMatrix<int>::Create( 2, ranges, &matrixData.front() );
-        int indices[] = { 0, 1 };
-        pnl::CGraph *pGraph = pnl::CGraph::Create(adjMat);
-
+        // greate pGraph with crap edges
+        pnl::CGraph *pGraph = pnl::CGraph::Create(0, NULL, NULL, NULL);
+        pGraph->AddNodes(numOfNds);
 
         // set up the bnet template
         pnl::CNodeType *nodeTypes = new pnl::CNodeType [numOfNds];
-        for(int i=0; i< numOfNds; i++){ 
+        for(i=0; i< numOfNds; i++){
             nodeTypes[i].SetType(1,IN_ARRAY1[i]);
             }
         int *nodeAssociation = new int[numOfNds];
-        for(int i=0; i<numOfNds; i++){
+        for(i=0; i<numOfNds; i++){
             nodeAssociation[i] = i;
         }
-        pnl::CBNet *pBNet = pnl::CBNet::Create( numOfNds, numOfNds /*NumOfNodeTypes*/, nodeTypes, nodeAssociation, pGraph );
+        pnl::CBNet *pBNet = pnl::CBNet::Create( numOfNds, numOfNds, nodeTypes, nodeAssociation, pGraph );
+
+        // Set up factors ...
+        pnl::CModelDomain* pMD = pBNet->GetModelDomain();
+        pnl::CFactor **myParams = new pnl::CFactor*[numOfNds];
+        int *nodeNumbers = new int [numOfNds];
+        int **domains = new int*[numOfNds];
+        for(i=0; i<numOfNds; i++){
+            nodeNumbers[i] = 1;
+            int *domain_i = new int[nodeNumbers[i]];
+            domain_i[0] = i;
+            domains[i] = domain_i;
+           }
         pBNet->AllocFactors();
-//        for( int i = 0; i < numOfNds; ++i ) 
-//        { 
-//            pBNet->AllocFactor(i); 
-//            pnl::CFactor* pFactor = pBNet->GetFactor(i); 
-//            float *tab = new float[IN_ARRAY1[i]];
-//            for(int j=0; j<IN_ARRAY1[i]; j++){
-//                tab[j] = 0.5f;
-//                }
-//            pFactor->AllocMatrix( tab, pnl::matTable );         
-//        }
-//        // make up random values
-//        pBNet = pnl::CBNet::CreateWithRandomMatrices( pGraph, pBNet->GetModelDomain() );    
-        
+        for( i = 0; i < numOfNds; i++ )
+        {
+            myParams[i] = pnl::CTabularCPD::Create( domains[i], nodeNumbers[i], pMD);
+        }
+        for( i = 0; i < numOfNds; i++ )
+        {
+            try {
+              pBNet->AttachFactor(myParams[i]);
+            } catch(pnl::CException &ex) {
+            std::cout << "\n\nException breaks normal program execution: " << ex.GetMessage() << "\n";
+            }
+        }
+        pBNet = pnl::CBNet::CreateWithRandomMatrices( pGraph, pBNet->GetModelDomain() );
+
+
         // set up the learner
-        int max_fan_in = 4;
-        int n_restarts = 1;
         pnl::intVector vA, vD;
-        pnl::CMlStaticStructLearnHC* pLearnS = pnl::CMlStaticStructLearnHC::Create(pBNet,
+        pnl::CMlStaticStructLearnHC* pLearnS;
+
+        try {
+          pLearnS = pnl::CMlStaticStructLearnHC::Create(pBNet,
                             pnl::itStructLearnML, // Learning Type
                             pnl::StructLearnHC,   // EOptimizeTypes
                             pnl::BIC,             // ScoreType
@@ -311,10 +327,12 @@ pnl::CMlStaticStructLearnHC* mkCMlStaticStructLearnHC(int* IN_ARRAY1, int DIM1){
                             vA,
                             vD,
                             n_restarts);
+        } catch(pnl::CException &ex) {
+            std::cout << "\n\nException breaks normal program execution: " << ex.GetMessage() << "\n";
+        }
 
         return pLearnS;
 }
 
 
 %}
-
