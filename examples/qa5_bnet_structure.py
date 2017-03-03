@@ -3,10 +3,16 @@
 import openpnl
 import numpy as np
 
+# number of random example rows to generate
 n_ex = 128
+
+# Each item in this list is one node, the value represents the cardinality of the node variable
 nodeOrds = [10,7,3,4,2]
 
+# Make a random BN which complies to this node structure
 bn = openpnl.mkSkelBNet(nodeOrds)
+
+# Allocate a structure learner for this BN
 sl = openpnl.mkCMlStaticStructLearnHC(bn)
 
 # set up some evidence data
@@ -15,13 +21,13 @@ for i in range(0,n_ex):
     for j in range(0,len(nodeOrds)):
         ev[i,j] = np.random.randint(0,nodeOrds[j])
 
-# set data to the learner ..
+# set the evidence into the learner for learning
 sl.SetPyData(bn, ev)
 # do the structure learning ...
 sl.Learn();
 
 # Print learned dependencies 
-print "Learned structure dependencies..."
+print "Learned BN DAG structure dependencies..."
 dag = sl.GetResultDAG();
 dag.Dump();
 
