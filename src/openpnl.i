@@ -230,6 +230,34 @@ namespace pnl {
           self->SetData(nEv, pEvidences);
         }
     }
+
+    // return 2D Numpy adjacency matrix 
+    %extend CDAG 
+    {
+        //void adjMatrix(int** ARGOUTVIEW_ARRAY2, int* DIM1, int* DIM2){
+//        void adjMatrix(int ARGOUT_ARRAY2[][]){
+        void adjMatrix(int DIM1, int* ARGOUT_ARRAY1){
+//            assert(*DIM1 = self->m_pAncesstorMatrix->GetHeight());
+//            assert(*DIM2 = self->m_pAncesstorMatrix->GetWidth());
+            int h = self->m_pAncesstorMatrix->GetHeight();
+            int w = self->m_pAncesstorMatrix->GetWidth();
+ 
+            // set the output from our internal array
+            for(int i=0; i<h; i++){
+                for(int j=0; j<w; j++){
+                    if(self->m_pAncesstorMatrix->GetValue(i, j)){
+//                        ARGOUTVIEW_ARRAY2[i][j] = 1;
+//                          ARGOUT_ARRAY2[i][j] = 1;
+                        ARGOUT_ARRAY1[j+i*w] = 1;
+                    } else {
+//                          ARGOUT_ARRAY2[i][j] = 0;
+//                        ARGOUTVIEW_ARRAY2[i][j] = 0;
+                        ARGOUT_ARRAY1[j+i*w] = 0;
+                    }
+                }
+            }
+        }
+    }
 }
 
 /*
