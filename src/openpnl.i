@@ -205,6 +205,31 @@ namespace pnl {
             self->MarginalNodes(iv, time, notExpandJPD);
         }
     }
+
+    %extend CMlStaticStructLearnHC
+    {
+        void SetPyData( pnl::CBNet* pBNet, int* IN_ARRAY2, int DIM1, int DIM2 ){
+          int nEv = DIM1;
+          int nnodes = DIM2; // TODO: make sure this matches model nnodes
+          pnl::CEvidence **pEvidences = new pnl::CEvidence *[nEv];
+          int* obs_nodes = new int[nnodes];
+          for(int i=0; i<nnodes; i++){
+            obs_nodes[i] = i;
+            }
+          pnl::valueVector input_data;
+          input_data.resize(nnodes);
+
+          // make a pEvidence for each example
+          for(int i=0; i<nEv; i++){
+            for(int j=0; j<nnodes; j++){
+              input_data[j].SetInt(IN_ARRAY2[i*DIM2+j]);
+            }
+            pEvidences[i] = pnl::CEvidence::Create(pBNet, nnodes, obs_nodes, input_data);
+          }
+          // pass pEvidences to learner setData
+          self->SetData(nEv, pEvidences);
+        }
+    }
 }
 
 /*
@@ -258,14 +283,8 @@ pnl::pEvidencesVecVector* toEvidencesVecVector(pnl::CEvidence** ev, int n){
     return v;
 }
 
-pnl::CMlStaticStructLearnHC* mkCMlStaticStructLearnHC(int* IN_ARRAY1, int DIM1, int max_fan_in=4, int n_restarts=1){
+pnl::CBNet* mkSkelBNet(int* IN_ARRAY1, int DIM1){
         int i;
-        //fan in sanity check + warning
-        if(max_fan_in > DIM1){
-          std::cout << "WARNING: reducing max_fan_in to equal num_nodes!\n";
-          max_fan_in = DIM1;
-        }
-
         int numOfNds = DIM1;
         std::cout << "Number of nodes: " << numOfNds << "\n";
         for(i=0; i<numOfNds; i++){
@@ -312,7 +331,10 @@ pnl::CMlStaticStructLearnHC* mkCMlStaticStructLearnHC(int* IN_ARRAY1, int DIM1, 
             }
         }
         pBNet = pnl::CBNet::CreateWithRandomMatrices( pGraph, pBNet->GetModelDomain() );
+        return pBNet;
+}
 
+pnl::CMlStaticStructLearnHC* mkCMlStaticStructLearnHC(pnl::CBNet* pBNet, int max_fan_in=4, int n_restarts=1){
 
         // set up the learner
         pnl::intVector vA, vD;
