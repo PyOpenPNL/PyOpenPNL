@@ -22,6 +22,7 @@
 #include "pnlIDPotential.hpp"
 #include "pnlExInferenceEngine.hpp"
 #include "pnlEmLearningEngineDBN.hpp"
+#include "pnlEmLearningEngine.hpp"
 #include "pnlNodeType.hpp"
 #include "pnlTabularCPD.hpp"
 #include "pnlBKInferenceEngine.hpp"
@@ -120,6 +121,7 @@ namespace pnl {
 %include "pnlLearningEngine.hpp"
 %include "pnlDynamicLearningEngine.hpp"
 %include "pnlEmLearningEngineDBN.hpp"
+%include "pnlEmLearningEngine.hpp"
 %include "pnlInferenceEngine.hpp"
 %include "pnlNaiveInferenceEngine.hpp"
 %include "pnlBKInferenceEngine.hpp"
@@ -234,11 +236,9 @@ namespace pnl {
     // return 2D Numpy adjacency matrix 
     %extend CDAG 
     {
-        //void adjMatrix(int** ARGOUTVIEW_ARRAY2, int* DIM1, int* DIM2){
-//        void adjMatrix(int ARGOUT_ARRAY2[][]){
+        // return a 2D adjacency matrix as a 1D flattened matrix 
+        // TODO: return this as a proper 2D matrix ...
         void adjMatrix(int DIM1, int* ARGOUT_ARRAY1){
-//            assert(*DIM1 = self->m_pAncesstorMatrix->GetHeight());
-//            assert(*DIM2 = self->m_pAncesstorMatrix->GetWidth());
             int h = self->m_pAncesstorMatrix->GetHeight();
             int w = self->m_pAncesstorMatrix->GetWidth();
  
@@ -246,16 +246,37 @@ namespace pnl {
             for(int i=0; i<h; i++){
                 for(int j=0; j<w; j++){
                     if(self->m_pAncesstorMatrix->GetValue(i, j)){
-//                        ARGOUTVIEW_ARRAY2[i][j] = 1;
-//                          ARGOUT_ARRAY2[i][j] = 1;
                         ARGOUT_ARRAY1[j+i*w] = 1;
                     } else {
-//                          ARGOUT_ARRAY2[i][j] = 0;
-//                        ARGOUTVIEW_ARRAY2[i][j] = 0;
                         ARGOUT_ARRAY1[j+i*w] = 0;
                     }
                 }
             }
+        }
+    }
+
+    %extend CEMLearningEngine
+    {
+        void SetPyData( pnl::CBNet* pBNet, int* IN_ARRAY2, int DIM1, int DIM2 ){
+          int nEv = DIM1;
+          int nnodes = DIM2; // TODO: make sure this matches model nnodes
+          pnl::CEvidence **pEvidences = new pnl::CEvidence *[nEv];
+          int* obs_nodes = new int[nnodes];
+          for(int i=0; i<nnodes; i++){
+            obs_nodes[i] = i;
+            }
+          pnl::valueVector input_data;
+          input_data.resize(nnodes);
+
+          // make a pEvidence for each example
+          for(int i=0; i<nEv; i++){
+            for(int j=0; j<nnodes; j++){
+              input_data[j].SetInt(IN_ARRAY2[i*DIM2+j]);
+            }
+            pEvidences[i] = pnl::CEvidence::Create(pBNet, nnodes, obs_nodes, input_data);
+          }
+          // pass pEvidences to learner setData
+          self->SetData(nEv, pEvidences);
         }
     }
 }
