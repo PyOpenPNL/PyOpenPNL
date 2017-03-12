@@ -9,6 +9,10 @@ n_ex = 128
 # Each item in this list is one node, the value represents the cardinality of the node variable
 nodeOrds = [10,7,3,4,2]
 
+###### Make Example BNet #######
+
+bn = openpnl.pnlExCreateWaterSprinklerBNet();
+
 # Make a random BN which complies to this node structure
 bn = openpnl.mkSkelBNet(nodeOrds)
 
@@ -46,5 +50,20 @@ pl.SetPyData(bn, ev)
 # Learn CPDsa
 pl.Learn()
 
-##########################################
+################# DAG INFERENCE ###########
+
+infeng = openpnl.CNaiveInfEngine.Create( bn )
+
+nodes = [0,3,4]
+vals  = [2,3,1]
+a = np.vstack([nodes,vals]).astype('int32')
+print a
+
+infeng.enterEvidence(bn, a)
+infeng.sampleNodes([1,2])
+
+infeng.sampleNodes([1])
+infeng.sampleNodes([2])
+
+
 

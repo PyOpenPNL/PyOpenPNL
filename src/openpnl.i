@@ -171,6 +171,51 @@ namespace pnl {
         void MarginalNodes( std::vector<int> queryNds ){
             self->MarginalNodes( (const int*) &queryNds[0], queryNds.size() );
         }
+        void enterEvidence( const CBNet* bn, int DIM1, int DIM2, int* IN_ARRAY2 ){
+            if(not (DIM1 == 2)){
+                throw std::runtime_error("DIM1 must be 2, (nodes, vals)!");
+            }
+            int nObsNds = DIM2;
+            int *obsNds = new int[DIM2];
+            pnl::valueVector obsVals;
+            obsVals.resize(nObsNds);
+            for(int i=0; i<nObsNds; i++){
+                obsNds[i] = IN_ARRAY2[i];
+                obsVals[i] = IN_ARRAY2[i+DIM2];
+                }
+            pnl::CEvidence* pEvid = pnl::CEvidence::Create(bn, nObsNds, obsNds, obsVals );
+            self->EnterEvidence(pEvid);
+        }
+
+        void sampleNodes( int DIM1, int* IN_ARRAY1){
+            self->MarginalNodes( IN_ARRAY1, DIM1 );
+            const pnl::CPotential* pMarg = self->GetQueryJPD();
+            
+            int nnodes;
+            const int * domain;
+
+            pMarg->GetDomain( &nnodes, &domain );
+
+            std::cout << "nnodes"<<nnodes<<"\n";
+            for( int i = 0; i < nnodes; i++ )
+            {
+                std::cout<<domain[i]<<" ";
+            }
+            std::cout << "\n";
+
+            pnl::CMatrix<float>* pMat = pMarg->GetMatrix(pnl::matTable);
+            std::cout << " Got matrix \n";
+
+            int nEl;
+            const float* data;
+            static_cast<pnl::CNumericDenseMatrix<float>*>(pMat)->GetRawData(&nEl, &data);
+            for( i = 0; i < nEl; i++ )
+            {
+                std::cout<<" "<<data[i];
+            }
+            std::cout<<std::endl;
+
+        }
     }
     %extend CGraph
     {
