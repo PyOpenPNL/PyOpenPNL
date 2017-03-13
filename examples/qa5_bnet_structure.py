@@ -60,10 +60,12 @@ a = np.vstack([nodes,vals]).astype('int32')
 print a
 
 infeng.enterEvidence(bn, a)
-infeng.sampleNodes([1,2])
+p0 = infeng.sampleNodes([1,2])
+print p0
 
-infeng.sampleNodes([1])
-infeng.sampleNodes([2])
+p1 = infeng.sampleNodes([1])
+print p1
 
-
+p2 = infeng.sampleNodes([2])
+print p2
 

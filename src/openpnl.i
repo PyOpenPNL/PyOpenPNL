@@ -166,6 +166,9 @@ namespace pnl {
             return pvv;
         }
     }
+
+
+
     %extend CNaiveInfEngine
     {
         void MarginalNodes( std::vector<int> queryNds ){
@@ -187,7 +190,7 @@ namespace pnl {
             self->EnterEvidence(pEvid);
         }
 
-        void sampleNodes( int DIM1, int* IN_ARRAY1){
+        PyObject* sampleNodes( int DIM1, int* IN_ARRAY1){
             self->MarginalNodes( IN_ARRAY1, DIM1 );
             const pnl::CPotential* pMarg = self->GetQueryJPD();
             
@@ -209,12 +212,18 @@ namespace pnl {
             int nEl;
             const float* data;
             static_cast<pnl::CNumericDenseMatrix<float>*>(pMat)->GetRawData(&nEl, &data);
-            for( i = 0; i < nEl; i++ )
-            {
-                std::cout<<" "<<data[i];
-            }
-            std::cout<<std::endl;
+//            for( i = 0; i < nEl; i++ )
+//            {
+//                std::cout<<" "<<data[i];
+//            }
+//            std::cout<<std::endl;
 
+            int nd = 1;
+            npy_intp * dims = new npy_intp[1];
+            dims[0] = nEl;
+            
+            PyObject *obj = PyArray_SimpleNewFromData(nd, dims, NPY_FLOAT32, (void*)data);
+            return obj;
         }
     }
     %extend CGraph
