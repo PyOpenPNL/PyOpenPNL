@@ -199,24 +199,11 @@ namespace pnl {
 
             pMarg->GetDomain( &nnodes, &domain );
 
-            std::cout << "nnodes"<<nnodes<<"\n";
-            for( int i = 0; i < nnodes; i++ )
-            {
-                std::cout<<domain[i]<<" ";
-            }
-            std::cout << "\n";
-
             pnl::CMatrix<float>* pMat = pMarg->GetMatrix(pnl::matTable);
-            std::cout << " Got matrix \n";
 
             int nEl;
             const float* data;
             static_cast<pnl::CNumericDenseMatrix<float>*>(pMat)->GetRawData(&nEl, &data);
-//            for( i = 0; i < nEl; i++ )
-//            {
-//                std::cout<<" "<<data[i];
-//            }
-//            std::cout<<std::endl;
 
             int nd = 1;
             npy_intp * dims = new npy_intp[1];
