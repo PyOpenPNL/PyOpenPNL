@@ -116,6 +116,7 @@ namespace pnl {
 %include "pnlExampleModels.hpp"
 %include "pnlDynamicInferenceEngine.hpp"
 %include "pnl2TBNInferenceEngine.hpp"
+%include "pnlJunctionTree.hpp"
 %include "pnl1_5SliceInferenceEngine.hpp"
 %include "pnl1_5SliceJtreeInferenceEngine.hpp"
 %include "pnlLearningEngine.hpp"
@@ -124,10 +125,12 @@ namespace pnl {
 %include "pnlEmLearningEngine.hpp"
 %include "pnlInferenceEngine.hpp"
 %include "pnlNaiveInferenceEngine.hpp"
+%include "pnlJtreeInferenceEngine.hpp"
 %include "pnlBKInferenceEngine.hpp"
 %include "pnlPearlInferenceEngine.hpp"
 %include "pnlMlStaticStructLearn.hpp"
 %include "pnlMlStaticStructLearnHC.hpp"
+
 
 
 namespace pnl {
@@ -139,6 +142,9 @@ namespace pnl {
 
     %template(pEvidencesVecVector) ::pnl::pnlVector< pEvidencesVector>;
     %template(pConstValueVector)   ::pnl::pnlVector< const Value*>;
+
+    %ignore ::pnl::CJunctionTree::Create(pnl::CStaticGraphicalModel const *);
+
     %extend CDynamicInfEngine
     {
         void MarginalNodes(std::vector<int> iv,int n1,int n2){
@@ -174,45 +180,15 @@ namespace pnl {
         void MarginalNodes( std::vector<int> queryNds ){
             self->MarginalNodes( (const int*) &queryNds[0], queryNds.size() );
         }
-        void enterEvidence( const CBNet* bn, int DIM1, int DIM2, int* IN_ARRAY2 ){
-            if(not (DIM1 == 2)){
-                throw std::runtime_error("DIM1 must be 2, (nodes, vals)!");
-            }
-            int nObsNds = DIM2;
-            int *obsNds = new int[DIM2];
-            pnl::valueVector obsVals;
-            obsVals.resize(nObsNds);
-            for(int i=0; i<nObsNds; i++){
-                obsNds[i] = IN_ARRAY2[i];
-                obsVals[i] = IN_ARRAY2[i+DIM2];
-                }
-            pnl::CEvidence* pEvid = pnl::CEvidence::Create(bn, nObsNds, obsNds, obsVals );
-            self->EnterEvidence(pEvid);
-        }
+    }
+    %extend CJtreeInfEngine
+    {
 
-        PyObject* sampleNodes( int DIM1, int* IN_ARRAY1){
-            self->MarginalNodes( IN_ARRAY1, DIM1 );
-            const pnl::CPotential* pMarg = self->GetQueryJPD();
-            
-            int nnodes;
-            const int * domain;
-
-            pMarg->GetDomain( &nnodes, &domain );
-
-            pnl::CMatrix<float>* pMat = pMarg->GetMatrix(pnl::matTable);
-
-            int nEl;
-            const float* data;
-            static_cast<pnl::CNumericDenseMatrix<float>*>(pMat)->GetRawData(&nEl, &data);
-
-            int nd = 1;
-            npy_intp * dims = new npy_intp[1];
-            dims[0] = nEl;
-            
-            PyObject *obj = PyArray_SimpleNewFromData(nd, dims, NPY_FLOAT32, (void*)data);
-            return obj;
+        void MarginalNodes( std::vector<int> queryNds ){
+            self->MarginalNodes( (const int*) &queryNds[0], queryNds.size() );
         }
     }
+
     %extend CGraph
     {
         static CGraph* CreateNP( int* IN_ARRAY2, int DIM1, int DIM2 ){
@@ -238,6 +214,51 @@ namespace pnl {
         void pyMarginalNodes( std::vector<int> nodes, int notExpandJPD = 0 ){
             const pnl::intVector iv(&nodes[0], &nodes[nodes.size()]);
             self->MarginalNodes( iv, notExpandJPD );
+        }
+        void enterEvidence( const CBNet* bn, int DIM1, int DIM2, int* IN_ARRAY2 ){
+            if(not (DIM1 == 2)){
+                throw std::runtime_error("DIM1 must be 2, (nodes, vals)!");
+            }
+            int nObsNds = DIM2;
+            int *obsNds = new int[DIM2];
+            pnl::valueVector obsVals;
+            obsVals.resize(nObsNds);
+            for(int i=0; i<nObsNds; i++){
+                obsNds[i] = IN_ARRAY2[i];
+                obsVals[i] = IN_ARRAY2[i+DIM2];
+                }
+            pnl::CEvidence* pEvid = pnl::CEvidence::Create(bn, nObsNds, obsNds, obsVals );
+            self->EnterEvidence(pEvid);
+        }
+        PyObject* sampleNodes( int DIM1, int* IN_ARRAY1){
+
+            try {
+
+                self->MarginalNodes( IN_ARRAY1, DIM1 );
+                const pnl::CPotential* pMarg = self->GetQueryJPD();
+                
+                int nnodes;
+                const int * domain;
+    
+                pMarg->GetDomain( &nnodes, &domain );
+    
+                pnl::CMatrix<float>* pMat = pMarg->GetMatrix(pnl::matTable);
+    
+                int nEl;
+                const float* data;
+                static_cast<pnl::CNumericDenseMatrix<float>*>(pMat)->GetRawData(&nEl, &data);
+    
+                int nd = 1;
+                npy_intp * dims = new npy_intp[1];
+                dims[0] = nEl;
+                
+                PyObject *obj = PyArray_SimpleNewFromData(nd, dims, NPY_FLOAT32, (void*)data);
+                return obj;
+
+            } catch(pnl::CException &ex) {
+                std::cout << "\n\nException breaks normal program execution: " << ex.GetMessage() << "\n";
+                return NULL;
+            }
         }
     }
     %extend CDynamicInfEngine

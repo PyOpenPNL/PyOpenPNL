@@ -14,25 +14,30 @@ G = networkx.relabel_nodes(G, mp)
 networkx.draw(G)
 plt.show()
 
-
-
 pWSBnet = openpnl.pnlExCreateWaterSprinklerBNet()
 pWSBnet.GetGraph().Dump();
-
 pEvidForWS = openpnl.mkEvidence( pWSBnet, [0], [1] )
+
+
+## Naive Inference Engine
+print "Naive Inf Engine"
 pNaiveInf = openpnl.CNaiveInfEngine.Create( pWSBnet )
 pNaiveInf.EnterEvidence( pEvidForWS );
-
 nodes = [1,3]
 pNaiveInf.MarginalNodes( nodes );
-
 pMarg = pNaiveInf.GetQueryJPD()
-
 obsVls = openpnl.pConstValueVector()
-#print obsVls
-#pEvidForWS.GetObsNodesWithValues( openpnl.toIntVector(nodes), obsVls )
+print openpnl.convertVector( pMarg.GetMatrix(openpnl.matTable).ConvertToDense().GetVector() )
 
 
+# CJtree Inf Eng
+print "CJtree Inf Engine"
+pCJInf = openpnl.CJtreeInfEngine.Create( pWSBnet )
+pCJInf.EnterEvidence( pEvidForWS );
+nodes = [1,3]
+pCJInf.MarginalNodes( nodes );
+pMarg = pCJInf.GetQueryJPD()
+obsVls = openpnl.pConstValueVector()
 print openpnl.convertVector( pMarg.GetMatrix(openpnl.matTable).ConvertToDense().GetVector() )
 
 
