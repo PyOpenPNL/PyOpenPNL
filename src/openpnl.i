@@ -29,6 +29,7 @@
 #include "pnlPearlInferenceEngine.hpp"
 #include "pnlJunctionTree.hpp"
 #include "pnlJtreeInferenceEngine.hpp"
+#include "pnlParJtreeInferenceEngine.hpp"
 #include "pnlMlStaticStructLearnHC.hpp"
 #include "pnlMlStaticStructLearn.hpp"
 
@@ -126,6 +127,7 @@ namespace pnl {
 %include "pnlInferenceEngine.hpp"
 %include "pnlNaiveInferenceEngine.hpp"
 %include "pnlJtreeInferenceEngine.hpp"
+%include "pnlParJtreeInferenceEngine.hpp"
 %include "pnlBKInferenceEngine.hpp"
 %include "pnlPearlInferenceEngine.hpp"
 %include "pnlMlStaticStructLearn.hpp"
@@ -183,7 +185,12 @@ namespace pnl {
     }
     %extend CJtreeInfEngine
     {
-
+        void MarginalNodes( std::vector<int> queryNds ){
+            self->MarginalNodes( (const int*) &queryNds[0], queryNds.size() );
+        }
+    }
+    %extend CParJtreeInfEngine
+    {
         void MarginalNodes( std::vector<int> queryNds ){
             self->MarginalNodes( (const int*) &queryNds[0], queryNds.size() );
         }
@@ -201,6 +208,12 @@ namespace pnl {
             pnl::intVector v;
             self->GetParents(node, &v);
             return std::vector<int>(&v[0], &v[v.size()]);
+        }
+    }
+    %extend CBNet
+    {
+        void allocFactor(int i){
+            self->AllocFactor(i);
         }
     }
     %extend CFactor
@@ -315,6 +328,18 @@ namespace pnl {
                 }
             }
         }
+        void topSort()
+        {
+            std::cout << "topSort\n";
+            pnl::intVector pivo;
+            bool res = self->TopologicalSort(&pivo);
+            std::cout << "topSort Fin:"<<res<<"\n";
+        }
+        CDAG* topSortedDAG()
+        {
+            pnl::intVector pNM;
+            return self->TopologicalCreateDAG(pNM);
+        }
     }
 
     %extend CEMLearningEngine
@@ -395,6 +420,56 @@ pnl::pEvidencesVecVector* toEvidencesVecVector(pnl::CEvidence** ev, int n){
 }
 
 pnl::CBNet* mkSkelBNet(int* IN_ARRAY1, int DIM1){
+        int i;
+        int numOfNds = DIM1;
+        std::cout << "Number of nodes: " << numOfNds << "\n";
+        for(i=0; i<numOfNds; i++){
+            std::cout << "Node("<<i<<") Size: "<<IN_ARRAY1[i] <<"\n";
+            }
+
+        // greate pGraph with crap edges
+        pnl::CGraph *pGraph = pnl::CGraph::Create(0, NULL, NULL, NULL);
+        pGraph->AddNodes(numOfNds);
+
+        // set up the bnet template
+        pnl::CNodeType *nodeTypes = new pnl::CNodeType [numOfNds];
+        for(i=0; i< numOfNds; i++){
+            nodeTypes[i].SetType(1,IN_ARRAY1[i]);
+            }
+        int *nodeAssociation = new int[numOfNds];
+        for(i=0; i<numOfNds; i++){
+            nodeAssociation[i] = i;
+        }
+        pnl::CBNet *pBNet = pnl::CBNet::Create( numOfNds, numOfNds, nodeTypes, nodeAssociation, pGraph );
+
+        // Set up factors ...
+        pnl::CModelDomain* pMD = pBNet->GetModelDomain();
+        pnl::CFactor **myParams = new pnl::CFactor*[numOfNds];
+        int *nodeNumbers = new int [numOfNds];
+        int **domains = new int*[numOfNds];
+        for(i=0; i<numOfNds; i++){
+            nodeNumbers[i] = 1;
+            int *domain_i = new int[nodeNumbers[i]];
+            domain_i[0] = i;
+            domains[i] = domain_i;
+           }
+        pBNet->AllocFactors();
+        for( i = 0; i < numOfNds; i++ )
+        {
+            myParams[i] = pnl::CTabularCPD::Create( domains[i], nodeNumbers[i], pMD);
+        }
+        for( i = 0; i < numOfNds; i++ )
+        {
+            try {
+              pBNet->AttachFactor(myParams[i]);
+            } catch(pnl::CException &ex) {
+            std::cout << "\n\nException breaks normal program execution: " << ex.GetMessage() << "\n";
+            }
+        }
+        pBNet = pnl::CBNet::CreateWithRandomMatrices( pGraph, pBNet->GetModelDomain() );
+        return pBNet;
+}
+pnl::CBNet* mkBNet(int* IN_ARRAY1, int DIM1){
         int i;
         int numOfNds = DIM1;
         std::cout << "Number of nodes: " << numOfNds << "\n";

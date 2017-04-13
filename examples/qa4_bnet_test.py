@@ -41,3 +41,17 @@ obsVls = openpnl.pConstValueVector()
 print openpnl.convertVector( pMarg.GetMatrix(openpnl.matTable).ConvertToDense().GetVector() )
 
 
+
+#print dir(openpnl)
+
+# CParJtree Inf Eng
+#print "CParJtree Inf Engine"
+#pCJInf = openpnl.CParJtreeInfEngine.Create( pWSBnet )
+#pCJInf.EnterEvidence( pEvidForWS );
+#nodes = [1,3]
+#pCJInf.MarginalNodes( nodes );
+#pMarg = pCJInf.GetQueryJPD()
+#obsVls = openpnl.pConstValueVector()
+#print openpnl.convertVector( pMarg.GetMatrix(openpnl.matTable).ConvertToDense().GetVector() )
+
+
